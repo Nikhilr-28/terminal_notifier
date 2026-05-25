@@ -3,9 +3,13 @@ out/
 *.vsix
 .vscode-test/
 
+# Runtime/generated local files
 .vscode/terminal-notifier/
-backend/node_modules/
-backend/.env
 
+# OS/editor junk
 .DS_Store
-backend/
+Thumbs.db
+
+# Secrets
+.env
+*.env
