@@ -127,16 +127,27 @@ class NotifierViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(async (message) => {
       try {
         if (message.type === 'saveConfig') {
-          const channelConfig = buildChannelConfigFromMessage(message);
-          await saveChannelConfig(this.context, channelConfig);
+        const channelConfig = buildChannelConfigFromMessage(message);
 
-          await webviewView.webview.postMessage({
+        const validationError = validateChannelConfig(channelConfig);
+        if (validationError) {
+            await webviewView.webview.postMessage({
+            type: 'status',
+            level: 'error',
+            text: validationError
+            });
+            return;
+        }
+
+        await saveChannelConfig(this.context, channelConfig);
+
+        await webviewView.webview.postMessage({
             type: 'status',
             level: 'success',
             text: `Saved ${channelLabel(channelConfig.channel)} settings.`
-          });
+        });
 
-          return;
+        return;
         }
 
         if (message.type === 'clearConfig') {
@@ -1332,14 +1343,17 @@ function getWebviewHtml(state: {
         </div>
 
         <div id="discordPanel" class="panel">
-          <label for="discordWebhookUrl">Webhook URL</label>
-          <input id="discordWebhookUrl" type="password" value="${escapedDiscordWebhookUrl}" placeholder="https://discord.com/api/webhooks/..." />
+        <label for="discordWebhookUrl">Webhook URL</label>
+        <div class="row">
+            <input id="discordWebhookUrl" type="password" value="${escapedDiscordWebhookUrl}" placeholder="https://discord.com/api/webhooks/..." />
+            <button id="toggleDiscordWebhook" class="ghost" type="button">Show</button>
+        </div>
 
-          <div class="actions">
+        <div class="actions">
             <button id="testDiscord" class="secondary">Test</button>
-          </div>
+        </div>
 
-          <div class="hint">Paste a Discord channel webhook URL.</div>
+        <div class="hint">Paste a Discord channel webhook URL. Save once, then reuse it later.</div>
         </div>
 
         <div class="actions">
@@ -1495,6 +1509,12 @@ function getWebviewHtml(state: {
       const show = telegramBotToken.type === 'password';
       telegramBotToken.type = show ? 'text' : 'password';
       document.getElementById('toggleToken').textContent = show ? 'Hide' : 'Show';
+    });
+
+    document.getElementById('toggleDiscordWebhook').addEventListener('click', () => {
+    const show = discordWebhookUrl.type === 'password';
+    discordWebhookUrl.type = show ? 'text' : 'password';
+    document.getElementById('toggleDiscordWebhook').textContent = show ? 'Hide' : 'Show';
     });
 
     document.getElementById('saveConfig').addEventListener('click', () => {
@@ -1679,8 +1699,12 @@ function validateChannelConfig(config: ChannelConfig): string | undefined {
       return 'Discord webhook URL is required.';
     }
 
-    if (!config.discordWebhookUrl.startsWith('https://discord.com/api/webhooks/')) {
-      return 'Discord webhook URL should start with https://discord.com/api/webhooks/.';
+    const isDiscordWebhook =
+    config.discordWebhookUrl.startsWith('https://discord.com/api/webhooks/') ||
+    config.discordWebhookUrl.startsWith('https://discordapp.com/api/webhooks/');
+
+    if (!isDiscordWebhook) {
+    return 'Discord webhook URL should start with https://discord.com/api/webhooks/.';
     }
   }
 
