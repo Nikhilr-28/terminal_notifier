@@ -1,0 +1,143 @@
+{
+  "name": "terminal-notifier",
+  "displayName": "Terminal Notifier",
+  "description": "Run long-running commands from VS Code and receive Telegram or Discord notifications with terminal output when they finish.",
+  "version": "0.0.1",
+  "publisher": "NikhilRavichandran",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "terminalNotifier.runAndNotify",
+        "title": "Run + Notify",
+        "category": "Terminal Notifier",
+        "icon": "$(bell)"
+      },
+      {
+        "command": "terminalNotifier.focusPanel",
+        "title": "Open Notifier Panel",
+        "category": "Terminal Notifier",
+        "icon": "$(bell)"
+      },
+      {
+        "command": "terminalNotifier.openLogsFolder",
+        "title": "Open Logs Folder",
+        "category": "Terminal Notifier",
+        "icon": "$(folder-opened)"
+      }
+    ],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "terminalNotifierPanel",
+          "title": "Notifier",
+          "icon": "media/bell.svg"
+        }
+      ]
+    },
+    "views": {
+      "terminalNotifierPanel": [
+        {
+          "type": "webview",
+          "id": "terminalNotifier.view",
+          "name": "Run Notifier",
+          "icon": "media/bell.svg"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "terminalNotifier.runAndNotify",
+          "when": "view == terminal",
+          "group": "navigation@1"
+        },
+        {
+          "command": "terminalNotifier.runAndNotify",
+          "when": "view == terminalNotifier.view",
+          "group": "navigation@1"
+        },
+        {
+          "command": "terminalNotifier.openLogsFolder",
+          "when": "view == terminalNotifier.view",
+          "group": "navigation@2"
+        }
+      ],
+      "terminal/context": [
+        {
+          "command": "terminalNotifier.runAndNotify",
+          "group": "3_run@1"
+        },
+        {
+          "command": "terminalNotifier.focusPanel",
+          "group": "3_run@2"
+        }
+      ],
+      "terminal/title/context": [
+        {
+          "command": "terminalNotifier.runAndNotify",
+          "group": "3_run@1"
+        },
+        {
+          "command": "terminalNotifier.focusPanel",
+          "group": "3_run@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "terminalNotifier.runAndNotify"
+        },
+        {
+          "command": "terminalNotifier.focusPanel"
+        },
+        {
+          "command": "terminalNotifier.openLogsFolder"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Terminal Notifier",
+      "properties": {
+        "terminalNotifier.finalOutputLineCount": {
+          "type": "number",
+          "default": 80,
+          "minimum": 10,
+          "maximum": 1000,
+          "description": "Number of final output lines included in Final Output mode."
+        },
+        "terminalNotifier.maxNotificationCharacters": {
+          "type": "number",
+          "default": 12000,
+          "minimum": 1000,
+          "maximum": 50000,
+          "description": "Maximum output characters sent in a notification before truncation."
+        },
+        "terminalNotifier.defaultMode": {
+          "type": "string",
+          "default": "Final Output",
+          "enum": [
+            "Final Output",
+            "Full Terminal"
+          ],
+          "description": "Default output mode."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.5.4"
+  }
+}
