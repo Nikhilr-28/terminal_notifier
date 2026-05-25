@@ -1,8 +1,8 @@
 {
   "name": "terminal-notifier",
   "displayName": "Terminal Notifier",
-  "description": "Run long-running VS Code commands and receive Telegram or Discord notifications with terminal output when they finish.",
-  "version": "0.0.1",
+  "description": "Run long terminal commands and receive completion alerts.",
+  "version": "0.1.1",
   "publisher": "NikhilRavichandran",
   "author": {
     "name": "Nikhil Ravichandran"
@@ -17,7 +17,6 @@
   "bugs": {
     "url": "https://github.com/Nikhilr-28/terminal_notifier/issues"
   },
-  "preview": true,
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -27,20 +26,31 @@
   "keywords": [
     "terminal",
     "notifications",
-    "telegram",
-    "discord",
-    "webhook",
-    "machine-learning",
-    "deep-learning",
-    "long-running-tasks",
-    "training",
-    "productivity"
+    "productivity",
+    "developer-tools",
+    "commands",
+    "alerts"
   ],
   "galleryBanner": {
     "color": "#0B1020",
     "theme": "dark"
   },
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Terminal Notifier runs user-provided shell commands and is intended for trusted workspaces."
+    }
+  },
   "main": "./out/extension.js",
+  "activationEvents": [
+    "onView:terminalNotifier.view",
+    "onCommand:terminalNotifier.runAndNotify",
+    "onCommand:terminalNotifier.focusPanel",
+    "onCommand:terminalNotifier.openLogsFolder"
+  ],
   "contributes": {
     "commands": [
       {
