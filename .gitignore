@@ -6,6 +6,9 @@ out/
 # Runtime/generated local files
 .vscode/terminal-notifier/
 
+# Old PoC backend, no longer used
+backend/
+
 # OS/editor junk
 .DS_Store
 Thumbs.db

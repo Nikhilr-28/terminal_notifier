@@ -2,10 +2,10 @@
 .vscode-test/**
 src/**
 node_modules/**
-.gitignore
+backend/**
 .git/**
+.gitignore
 *.vsix
 tsconfig.json
-README-dev.md
-backend/**
-*.map
+**/*.map
+scripts/**
