@@ -1,124 +1,246 @@
 # Support
 
-This document covers setup help and troubleshooting for Terminal Notifier.
+This document covers setup help, expected behavior, and troubleshooting for Terminal Notifier.
 
-If you need help, open an issue:
+Repository:
+
+```text
+https://github.com/Nikhilr-28/terminal_notifier
+```
+
+Issues:
 
 ```text
 https://github.com/Nikhilr-28/terminal_notifier/issues
 ```
 
-Please do not post private notification settings or sensitive command output in public issues.
+Please remove private values and sensitive output before posting an issue.
 
 ## Quick checklist
 
-Before reporting a bug, check this first:
+Before reporting a problem, check:
 
 1. VS Code is open.
 2. Your computer is awake.
 3. The command was started through Terminal Notifier.
-4. Your notification channel is saved.
-5. The `Test` button works for the selected channel.
-6. Your internet connection is active.
+4. The selected channel test works.
+5. The current directory is correct.
+6. The selected environment mode is correct.
 7. The command works in a normal terminal.
-8. A local log was created under `.vscode/terminal-notifier/logs`.
+8. A local log exists under `.vscode/terminal-notifier/logs`.
 
 ## What to include in an issue
 
-Please include:
+Use this format:
 
 ```text
 OS:
 VS Code version:
 Terminal Notifier version:
 Notification channel:
+Environment mode:
+Current directory:
 Output mode:
-Command used:
+Command:
 Expected behavior:
 Actual behavior:
-Error message:
 Relevant log snippet:
 ```
 
-Remove private values before posting.
+Do not include private connection values or sensitive project output.
 
-## Telegram help
+## Active run help
 
-### Test alert does not arrive
+### I cannot see what the command is asking
 
-Try this sequence:
+Use the active-run output box in the Notifier panel.
 
-1. Confirm the bot value was copied correctly.
-2. Open the bot in Telegram.
-3. Send the bot a short message.
-4. Return to the Notifier panel.
-5. Click `Fetch Chat ID`.
-6. Select the detected chat row.
-7. Click `Save`.
-8. Click `Test`.
+It shows recent live output from the running command. The box is scrollable and does not grow indefinitely.
 
-The bot must receive at least one message before the chat can be detected.
+If you need the full output, click `Open terminal` or open the local log.
 
-### Fetch Chat ID shows no results
-
-Common causes:
-
-- The bot has not received a message yet.
-- The message was sent to a different bot.
-- The saved bot value belongs to another bot.
-- Telegram has not returned the update yet.
-
-Try sending a new message to the bot, wait a few seconds, then fetch again.
-
-### Telegram reports a chat problem
-
-Common causes:
-
-- The chat ID does not match the selected bot.
-- The bot was blocked.
-- The bot was deleted.
-- A new bot value was generated but the old one is still saved.
-
-Fix:
-
-1. Send a fresh message to the bot.
-2. Fetch the chat ID again.
-3. Save.
-4. Test.
-
-## Discord help
-
-### Test alert does not arrive
+### I sent input but nothing happened
 
 Check:
 
-1. The webhook URL was pasted completely.
-2. The webhook still exists in Discord.
-3. The selected channel still exists.
-4. The webhook is attached to the channel you expect.
-5. You clicked `Save`.
-6. You clicked `Test`.
+1. The command is still running.
+2. The program is actually waiting for input.
+3. You clicked `Send` or pressed Enter in the active input box.
+4. You used `Send empty line` when the program expects a blank response.
 
-### Discord reports a webhook problem
+Terminal Notifier supports simple stdin-style prompts such as Python `input()`. It is not a full terminal emulator.
 
-Try creating a new webhook:
+### I need to skip an input prompt
 
-1. Open Discord.
-2. Open the target server and channel.
-3. Open channel settings.
-4. Open `Integrations`.
-5. Open `Webhooks`.
-6. Create a new webhook.
-7. Copy the new URL.
-8. Paste it into Terminal Notifier.
-9. Save.
-10. Test.
+Click:
 
-### Message is too long
+```text
+Send empty line
+```
+
+This sends a newline without text.
+
+### Clear Output removed my visible output
+
+`Clear Output` only clears the Notifier preview.
+
+It does not clear:
+
+- the real terminal output
+- local logs
+- final completion output
+- saved payload files
+
+Use it when you want a clean live preview while a run continues.
+
+### Stop did not behave as expected
+
+The Stop button attempts to stop the active process and its child process tree.
+
+On Windows, this may use a process-tree termination strategy. Some programs may need a moment to stop, especially if they are using GPU resources or child processes.
+
+If a process does not stop:
+
+1. Click `Open terminal`.
+2. Try stopping from the terminal.
+3. Use Task Manager if needed.
+4. Check the local log to see what process continued.
+
+If this happens repeatedly, open an issue with the command and environment mode.
+
+## Current directory help
+
+### My command cannot find a file
+
+Check the current directory field.
+
+If your script is here:
+
+```text
+A:\Project\scripts\inference.py
+```
+
+you can use either:
+
+```text
+Current directory:
+A:\Project
+
+Command:
+python scripts\inference.py
+```
+
+or:
+
+```text
+Current directory:
+A:\Project\scripts
+
+Command:
+python inference.py
+```
+
+### `cd` does not print output
+
+That is expected.
+
+Terminal Notifier handles `cd` internally by updating the current directory. It does not spawn a separate process for `cd`.
+
+Example:
+
+```powershell
+cd .\scripts
+```
+
+After this, the current directory field should update.
+
+### The current directory is different in another project
+
+This is expected.
+
+Terminal Notifier stores the current directory per workspace.
+
+## Environment help
+
+### Which environment mode should I use?
+
+Use this guide:
+
+```text
+None
+  Use for commands that already work without an environment helper.
+
+Conda environment
+  Use for non-interactive Conda jobs such as training or evaluation.
+
+Python executable
+  Use for interactive Python scripts or when you want a specific interpreter.
+
+Custom prefix
+  Use for tools such as poetry, uv, npm wrappers, or project-specific launchers.
+```
+
+### Conda environment mode
+
+Enter only the environment name.
+
+Example:
+
+```text
+python3.10env
+```
+
+Then command:
+
+```powershell
+python scripts\train.py --epochs 5
+```
+
+Do not enter `conda activate` or `conda deactivate`.
+
+Those are shell-session operations and are not the right fit for this runner.
+
+### Python executable mode
+
+Use the full path to the Python interpreter.
+
+Example:
+
+```text
+C:\Users\you\anaconda3\envs\python3.10env\python.exe
+```
+
+Then command:
+
+```powershell
+scripts\inference.py --interactive
+```
+
+This is recommended for simple interactive Python scripts.
+
+### Custom prefix mode
+
+Use this for project-specific launchers.
+
+Example prefix:
+
+```text
+poetry run
+```
+
+Example command:
+
+```powershell
+python train.py
+```
+
+## Notification help
+
+### The notification is too long
 
 Use `Final Output` mode.
 
-You can also reduce:
+You can also lower:
 
 ```json
 {
@@ -126,74 +248,7 @@ You can also reduce:
 }
 ```
 
-## Command execution help
-
-### Command does not start
-
-Try running the same command in a normal VS Code terminal.
-
-If it fails there, Terminal Notifier will likely fail too.
-
-Check:
-
-- Command spelling.
-- Current workspace folder.
-- Relative paths.
-- PATH availability.
-- Python or Node environment availability.
-- Whether the command requires interactive input.
-
-Terminal Notifier is best for non-interactive commands.
-
-### Command works in a normal terminal but not in Terminal Notifier
-
-Try:
-
-1. Use absolute paths.
-2. Open the correct workspace folder.
-3. Restart VS Code.
-4. Check the generated local log.
-5. Confirm required tools are available from VS Code.
-
-### Command waits forever
-
-The command may be waiting for user input.
-
-Avoid commands that ask for:
-
-- passwords
-- confirmations
-- menu selections
-- interactive prompts
-
-### Python output appears out of order
-
-Terminal Notifier sets unbuffered Python output and merges error output into normal output to improve ordering.
-
-Some frameworks still buffer their own logs.
-
-For Python scripts, use:
-
-```python
-print("message", flush=True)
-```
-
-## Notification content help
-
-### Notification preview has no line breaks
-
-Some operating system notification previews compress line breaks.
-
-Open the actual Telegram or Discord message to see the formatted content.
-
-### Output is missing
-
-Check:
-
-1. Whether the command printed anything.
-2. Whether `Final Output` mode was selected.
-3. Whether the final output line count is too low.
-4. The local log file.
+### I need more final lines
 
 Increase:
 
@@ -203,23 +258,51 @@ Increase:
 }
 ```
 
-### Output was shortened
+### The notification was split into multiple messages
 
-This is expected when output exceeds the notification limit.
+This can happen when the output is long.
 
-Check the full local log:
+Use `Final Output` mode for long-running jobs. Full logs remain local.
 
-```text
-.vscode/terminal-notifier/logs/
-```
+### Mobile preview has no line breaks
+
+Some operating systems compress notification previews.
+
+Open the actual Telegram or Discord message to see the formatted content.
+
+## Channel setup help
+
+### Telegram test does not arrive
+
+Try:
+
+1. Confirm the value from BotFather was copied correctly.
+2. Send a message to your bot.
+3. Click `Fetch Chat ID`.
+4. Select the detected chat.
+5. Click `Save`.
+6. Click `Test`.
+
+The bot must receive at least one message before chat detection works.
+
+### Discord test does not arrive
+
+Try:
+
+1. Confirm the channel connection URL is complete.
+2. Confirm the channel still exists.
+3. Confirm the connection was not deleted.
+4. Paste the URL again.
+5. Click `Save`.
+6. Click `Test`.
 
 ## Command history help
 
-### Ctrl + Up / Ctrl + Down does not work
+### Ctrl + Up or Ctrl + Down does not work
 
-Some systems or extensions may capture these shortcuts.
+Some keyboard shortcuts may be captured by the OS or other extensions.
 
-Use the visible buttons instead:
+Use the buttons:
 
 ```text
 ↑ Prev
@@ -230,17 +313,17 @@ Use the visible buttons instead:
 
 History is saved after commands are run through Terminal Notifier.
 
-Run one command first, then try history recall.
+Run one command first.
 
 ### History differs between projects
 
 This is expected.
 
-Command history is saved per workspace.
+History is stored per workspace.
 
 ## Logs
 
-Terminal Notifier saves local logs under:
+Terminal Notifier saves local files under:
 
 ```text
 .vscode/terminal-notifier/logs/
@@ -256,46 +339,49 @@ payload-*.txt
 
 Use logs to inspect:
 
-- full output
+- full command output
+- shortened notifications
 - failed commands
-- failed notifications
+- stop behavior
 - exit codes
-- truncated notifications
 
 Do not commit generated logs.
 
 ## Safe usage
 
-- Review logs before sharing them.
-- Do not paste private values in public issue reports.
-- Do not run commands you do not trust.
 - Use Terminal Notifier only in trusted workspaces.
-- Keep your computer awake for long-running jobs.
+- Do not run commands you do not understand.
+- Review logs before sharing them.
+- Keep channel connection values private.
+- Keep your computer awake for long jobs.
+- Do not commit generated logs.
 
 ## Known limitations
 
 - VS Code must remain open.
-- The computer must stay awake.
+- Your computer must stay awake.
 - Already-running terminals are not captured.
-- The extension captures commands started through Terminal Notifier.
-- Interactive commands are not ideal.
-- Long notifications may be shortened.
-- Full output is kept in local logs.
-- Telegram and Discord require internet access.
+- Only commands started through Terminal Notifier are captured.
+- Full-screen terminal applications are not the target use case.
+- Very long output may be shortened in completion messages.
+- Full output remains available in local logs.
 
-## Recommended setup for long jobs
+## Recommended setup for training jobs
 
-For long training, build, and processing jobs:
+1. Use `Final Output`.
+2. Use Conda environment or Python executable mode.
+3. Print final metrics clearly.
+4. Save checkpoints from inside your script.
+5. Test the notification channel first.
+6. Keep the machine awake.
 
-1. Plug in your laptop.
-2. Disable sleep while the job runs.
-3. Use `Final Output` mode.
-4. Print clear final metrics.
-5. Save checkpoints inside your script.
-6. Test the channel before starting a long job.
-7. Check local logs after completion.
+Example:
 
-Example final prints:
+```powershell
+python train.py --epochs 5
+```
+
+Helpful final prints:
 
 ```python
 print(f"best_val_acc={best_val_acc}", flush=True)
@@ -303,8 +389,16 @@ print(f"final_test_acc={test_acc}", flush=True)
 print("training_complete", flush=True)
 ```
 
-## Repository
+## Recommended setup for interactive Python scripts
 
-```text
-https://github.com/Nikhilr-28/terminal_notifier
+1. Use Python executable mode.
+2. Use Full Terminal mode.
+3. Watch the active output box.
+4. Send responses through the active input box.
+5. Use Send empty line to skip optional prompts.
+
+Example:
+
+```powershell
+scripts\inference.py --interactive
 ```

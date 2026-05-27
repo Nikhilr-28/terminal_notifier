@@ -2,66 +2,215 @@
 
 ![Terminal Notifier](media/icon.png)
 
-Terminal Notifier is a VS Code extension for running long terminal commands and receiving a completion alert when the command finishes.
+**Receive mobile-friendly status updates for terminal runs in VS Code.**
 
-It is useful for training runs, evaluation scripts, data processing jobs, builds, tests, simulations, and other local commands that take enough time that you do not want to keep watching the terminal.
+Terminal Notifier helps you start a command from VS Code, watch the live output in a compact panel, interact with simple prompts when needed, and receive a concise completion message when the run ends.
+
+It is built for local development workflows where commands may take time: model training, evaluation scripts, data preprocessing, builds, tests, simulations, and other terminal runs that you do not want to babysit.
 
 ```text
-Run a command
-      ↓
-Capture the output
-      ↓
-Detect success or failure
-      ↓
-Send a concise completion alert
+Start a run
+    ↓
+Watch live output
+    ↓
+Send input if the program asks
+    ↓
+Receive a compact completion update
 ```
+
+## What is new in v1.1.0
+
+Terminal Notifier is no longer just a simple completion notifier. Version 1.1.0 adds a much stronger active-run workflow:
+
+- Live output preview inside the Notifier panel.
+- Scrollable active-run output that does not expand the whole UI.
+- Active input box for simple interactive programs.
+- Send, Send empty line, Stop, Open terminal, and Clear output controls.
+- Persistent current directory per workspace.
+- `cd` command handling that updates the Notifier current directory.
+- Environment modes for common workflows:
+  - None
+  - Conda environment
+  - Python executable
+  - Custom prefix
+- Better support for Python and ML workflows.
+- Stronger stop behavior for long-running processes.
+- Cleaner final notification formatting.
 
 ## Highlights
 
-- Run commands from a dedicated Notifier panel.
-- Run commands from a Terminal panel bell shortcut.
-- Send alerts to Telegram.
-- Send alerts to Discord.
-- Choose how much output to include.
-- Capture command success and failure.
-- Keep local logs for each run.
-- Reuse previous commands with command history.
-- Store channel settings locally in VS Code secure storage.
-- No separate local server is required.
+- Dedicated `Notifier` bottom-panel UI.
+- Terminal bell shortcut for quick Run + Notify.
+- Mobile-friendly completion messages.
+- Telegram and Discord delivery options.
+- Final Output and Full Terminal output modes.
+- Live output preview while the command is running.
+- Scrollable active run panel.
+- Clear Output button for the UI preview.
+- Local logs for every run.
+- Workspace-specific command history.
+- Current directory memory.
+- Environment selection for Conda and Python executable workflows.
+- No separate local backend server required.
 
-## Ways to run
+## Main workflows
 
-Terminal Notifier gives you two workflows.
-
-### Notifier panel
+### 1. Notifier panel
 
 Open the bottom panel tab named `Notifier`.
 
 Use it to:
 
-- Select a notification channel.
-- Configure the selected channel.
-- Send a test alert.
+- Choose a notification channel.
+- Configure the channel once.
+- Test the channel.
+- Set the current directory.
+- Choose an environment mode.
 - Enter a command.
-- Pick an output mode.
-- Run the command with completion notification enabled.
-- Open the local logs folder.
+- Watch live output.
+- Send input to an active run.
+- Stop an active run.
+- Open the full terminal view.
+- Open local logs.
 
-### Terminal bell shortcut
+This is the recommended workflow.
 
-The extension also contributes a bell shortcut in the Terminal panel.
+### 2. Terminal bell shortcut
 
-Use it when your notification channel is already configured and you want a quick command prompt flow.
+Terminal Notifier also adds a bell shortcut in the Terminal panel.
+
+Use it when your channel is already configured and you want a quick command prompt flow.
+
+## Active run panel
+
+When a command is running, Terminal Notifier shows an active-run section with:
+
+- Current run state.
+- Live output preview.
+- Input box for simple prompts.
+- Send button.
+- Send empty line button.
+- Stop button.
+- Open terminal button.
+- Clear output button.
+
+The live output preview is scrollable. It is meant for context, not as a replacement for the full terminal log.
+
+`Clear output` only clears the visible preview. It does not change the real run output, local logs, or the final completion message.
+
+## Current directory
+
+Terminal Notifier keeps a current directory per workspace.
+
+You can:
+
+- Edit the directory field.
+- Use the workspace root button.
+- Browse for a folder.
+- Run `cd` commands from the command box.
+
+Example:
+
+```powershell
+cd .\scripts
+```
+
+Terminal Notifier updates its current directory instead of running `cd` as a short-lived process.
+
+This means the next command runs from the updated directory.
+
+## Environment modes
+
+Terminal Notifier supports four environment modes.
+
+### None
+
+Runs the command as-is from the selected current directory.
+
+Example:
+
+```powershell
+python script.py
+```
+
+### Conda environment
+
+Use this for non-interactive Conda jobs.
+
+You enter only the environment name.
+
+```text
+python3.10env
+```
+
+Then run a normal command:
+
+```powershell
+python scripts\train.py --epochs 5
+```
+
+Terminal Notifier builds the Conda run command internally.
+
+This is recommended for training, evaluation, and other non-interactive scripts.
+
+### Python executable
+
+Use this for interactive Python scripts or when you want a specific Python interpreter.
+
+Example Python executable:
+
+```text
+C:\Users\you\anaconda3\envs\python3.10env\python.exe
+```
+
+Example command:
+
+```powershell
+scripts\inference.py --interactive
+```
+
+This mode is useful when the script uses `input()` prompts.
+
+### Custom prefix
+
+Use this only when you know exactly what prefix your command needs.
+
+Example:
+
+```powershell
+poetry run
+```
+
+Then command:
+
+```powershell
+python train.py
+```
+
+The effective run becomes:
+
+```powershell
+poetry run python train.py
+```
 
 ## Output modes
 
 ### Final Output
 
-Sends the last configured number of output lines.
+Recommended for long-running jobs.
 
-This is the recommended mode for long-running jobs because the final lines usually contain the useful result: final metrics, completion messages, or the last error.
+Final Output sends the most relevant final lines of the run. It is designed for mobile readability and avoids sending huge progress logs when possible.
 
-Default final line count:
+Best for:
+
+- Training summaries.
+- Final metrics.
+- Validation results.
+- Completion messages.
+- Last error traceback.
+- Short final reports.
+
+Setting:
 
 ```json
 {
@@ -71,11 +220,16 @@ Default final line count:
 
 ### Full Terminal
 
-Sends captured command output up to the configured notification size limit.
+Full Terminal includes a broader capture of the run output up to the configured notification size limit.
 
-This is useful for shorter jobs where the full output matters.
+Best for:
 
-Default notification character limit:
+- Short scripts.
+- Debug runs.
+- Small build logs.
+- Cases where the full printed output matters.
+
+Setting:
 
 ```json
 {
@@ -83,138 +237,64 @@ Default notification character limit:
 }
 ```
 
-If output is too long, the notification is shortened and the full output remains available in the local log.
+If output is too long, the completion message is shortened and the full log remains available locally.
 
-## Notification format
-
-Notifications are intentionally compact for mobile and chat apps.
-
-Example success alert:
+## Example completion message
 
 ```text
-🔔 ✅ Completed successfully | 2m 14s | exit 0
+🔔 ✅ 2m 14s | exit 0
 
-Command:
-  python train.py --epochs 20
+Mode:    Final Output
+Dir:     A:\Projects\Model
+Cmd:     python train.py --epochs 5
 
-Run:
-  Working dir: A:\Projects\Model
-  Mode: Final Output
-  Duration: 2m 14s
-  Exit code: 0
-
-Output:
-  epoch 19 val_acc=0.921
-  epoch 20 val_acc=0.928
-  final acc=0.928
-```
-
-Example error alert:
-
-```text
-🔔 ❌ Completed with error | 11s | exit 1
-
-Command:
-  python train.py
-
-Run:
-  Working dir: A:\Projects\Model
-  Mode: Final Output
-  Duration: 11s
-  Exit code: 1
-
-Output:
-  starting training
-  Traceback (most recent call last):
-    ...
-  RuntimeError: Example failure
+────────────────
+epoch 4 val_acc=0.921
+epoch 5 val_acc=0.928
+best_val_acc=0.928
+training_complete
 ```
 
 ## Telegram setup
 
 Telegram setup only needs to be done once.
 
-### 1. Create a Telegram bot
-
 1. Open Telegram.
-2. Search for `BotFather`.
-3. Start a chat with BotFather.
-4. Send the command to create a new bot.
-5. Follow the prompts.
-6. Copy the bot access value that BotFather gives you.
+2. Create a bot using BotFather.
+3. Copy the value BotFather gives you.
+4. Send a message to your bot, such as `hello`.
+5. Open the `Notifier` panel.
+6. Select Telegram.
+7. Paste the value into the Telegram field.
+8. Click `Fetch Chat ID`.
+9. Select the detected chat.
+10. Click `Save`.
+11. Click `Test`.
 
-Keep this value private.
+After the test succeeds, you can run commands and receive completion updates.
 
-### 2. Message your bot
-
-Open your new bot in Telegram and send it a short message such as:
-
-```text
-hello
-```
-
-The bot needs one message before Terminal Notifier can detect the chat.
-
-### 3. Configure Terminal Notifier
-
-1. Open VS Code.
-2. Open the `Notifier` panel.
-3. Select `Telegram`.
-4. Paste the bot value into `Bot token`.
-5. Click `Fetch Chat ID`.
-6. Click the detected chat row.
-7. Click `Save`.
-8. Click `Test`.
-
-If setup is correct, you will receive a test alert.
-
-### 4. Run a command
-
-Example:
-
-```powershell
-python -c "print('epoch 1 acc=0.81'); print('epoch 2 acc=0.87'); print('final acc=0.95')"
-```
-
-Choose `Final Output`, then run.
+Keep the Telegram connection value private.
 
 ## Discord setup
 
-Discord setup uses a channel incoming webhook.
-
-### 1. Create a Discord webhook
+Discord setup uses a channel connection URL.
 
 1. Open Discord.
 2. Open your server.
-3. Select the channel where alerts should appear.
+3. Choose the target channel.
 4. Open channel settings.
-5. Go to `Integrations`.
-6. Open `Webhooks`.
-7. Create a new webhook.
-8. Name it `Terminal Notifier` or any name you prefer.
-9. Copy the webhook URL.
+5. Open Integrations.
+6. Create a webhook.
+7. Copy the channel URL.
+8. Open the `Notifier` panel.
+9. Select Discord.
+10. Paste the URL.
+11. Click `Save`.
+12. Click `Test`.
 
-Keep the webhook URL private.
+After the test succeeds, the selected channel can receive completion updates.
 
-### 2. Configure Terminal Notifier
-
-1. Open the `Notifier` panel.
-2. Select `Discord`.
-3. Paste the webhook URL.
-4. Click `Save`.
-5. Click `Test`.
-
-If setup is correct, the selected Discord channel will receive a test alert.
-
-### 3. Run a command
-
-Example:
-
-```powershell
-python -c "print('start'); print('training complete'); print('final acc=0.97')"
-```
-
-Choose `Final Output`, then run.
+Keep the Discord channel URL private.
 
 ## Command history
 
@@ -227,7 +307,7 @@ Ctrl + ↑
 Ctrl + ↓
 ```
 
-or the buttons:
+or:
 
 ```text
 ↑ Prev
@@ -237,8 +317,8 @@ or the buttons:
 Behavior:
 
 - History is workspace-specific.
-- Duplicate commands are moved to the top.
-- The most recent 30 commands are remembered.
+- Commands are saved automatically when run.
+- Duplicate commands move to the top.
 - Editing the command box resets the history cursor.
 
 ## Local logs
@@ -249,11 +329,11 @@ Every run saves local files under:
 .vscode/terminal-notifier/logs/
 ```
 
-These logs help when:
+Logs are useful when:
 
-- A notification was shortened.
-- A command failed.
-- You want to inspect the full output.
+- A completion message was shortened.
+- You need full run output.
+- You want to inspect a failed run.
 - You want to compare earlier runs.
 
 Recommended `.gitignore` entry:
@@ -262,11 +342,62 @@ Recommended `.gitignore` entry:
 .vscode/terminal-notifier/
 ```
 
-## Privacy
+## Recommended training setup
 
-Terminal Notifier stores notification settings locally through VS Code secure storage.
+For training jobs such as:
 
-Do not commit local logs or configuration values if they contain private information.
+```powershell
+python train.py --epochs 5
+```
+
+Recommended settings:
+
+```text
+Environment: Conda environment or Python executable
+Output mode: Final Output
+```
+
+Make sure your training script prints final metrics clearly:
+
+```python
+print(f"best_val_acc={best_val_acc}", flush=True)
+print(f"final_test_acc={test_acc}", flush=True)
+print("training_complete", flush=True)
+```
+
+This makes the completion message much more useful.
+
+## Recommended interactive setup
+
+For simple Python interactive scripts:
+
+```text
+Environment: Python executable
+Output mode: Full Terminal
+```
+
+Example command:
+
+```powershell
+scripts\inference.py --interactive
+```
+
+Use the active-run input box to respond to prompts.
+
+For complex full-screen terminal programs, use a normal terminal. Terminal Notifier supports simple stdin-style interactions, not full terminal emulation.
+
+## Privacy and local data
+
+Terminal Notifier stores channel settings locally through VS Code secure storage.
+
+Generated logs stay in your workspace.
+
+Do not commit:
+
+- Local run logs.
+- Private connection values.
+- Sensitive command output.
+- Generated payload files.
 
 ## Limitations
 
@@ -276,29 +407,11 @@ That means:
 
 - VS Code must stay open.
 - Your computer must stay awake.
-- Commands must be started through Terminal Notifier to be captured.
+- Only commands started through Terminal Notifier are captured.
 - Already-running terminals are not captured.
-- Interactive commands are not ideal.
-- Long output may be shortened in the notification.
-- Full local logs are saved for review.
-
-## Recommended use for long jobs
-
-For long ML, AI, data, and build jobs:
-
-1. Use `Final Output` mode.
-2. Print final metrics clearly.
-3. Make sure the machine will not sleep.
-4. Test your notification channel before starting an overnight job.
-5. Check local logs if the notification is shortened.
-
-Example final prints:
-
-```python
-print(f"best_val_acc={best_val_acc}", flush=True)
-print(f"final_test_acc={test_acc}", flush=True)
-print("training_complete", flush=True)
-```
+- Very long output may be shortened in the completion message.
+- Full logs are saved locally.
+- Simple interactive prompts are supported, but full terminal emulation is not the goal.
 
 ## Extension settings
 
@@ -316,7 +429,7 @@ Default:
 
 ### `terminalNotifier.maxNotificationCharacters`
 
-Maximum output characters sent in a notification before truncation.
+Maximum output characters included before shortening.
 
 Default:
 
@@ -359,7 +472,7 @@ Compile:
 npm run compile
 ```
 
-Run the extension in a development host:
+Run in an Extension Development Host:
 
 ```text
 F5
@@ -373,10 +486,10 @@ Package locally:
 npx @vscode/vsce package
 ```
 
-Install the package locally:
+Install locally:
 
 ```powershell
-code --install-extension .\terminal-notifier-0.1.1.vsix --force
+code --install-extension .\terminal-notifier-1.1.0.vsix --force
 ```
 
 ## Repository

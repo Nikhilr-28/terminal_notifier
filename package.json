@@ -1,7 +1,7 @@
 {
   "name": "terminal-notifier",
   "displayName": "Terminal Notifier",
-  "description": "Run long terminal commands and receive completion alerts.",
+  "description": "Receive mobile-friendly status updates for terminal runs in VS Code.",
   "version": "1.1.0",
   "publisher": "NikhilRavichandran",
   "author": {
@@ -29,7 +29,8 @@
     "productivity",
     "developer-tools",
     "commands",
-    "alerts"
+    "runner",
+    "status"
   ],
   "galleryBanner": {
     "color": "#0B1020",
